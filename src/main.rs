@@ -1,99 +1,94 @@
-use clap::Parser;
-use std::fs;
-use std::io::prelude::*;
+use std::env;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
+use std::process;
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    // Path of the input file
-    #[arg(short, long)]
-    input_file: String,
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        println!("use: css_minifier -i PATH_TO_INPUT_FILE -o OUTPUT_FILE_PATH");
+        process::exit(-1);
+    }
 
-    // Path of the output file
-    #[arg(short, long)]
-    output_file: String,
-}
-
-fn main() -> std::io::Result<()> {
-    let args = Args::parse();
-
-    let fi = fs::read_to_string(&args.input_file).expect("could not read input file");
-    let mut fo =
-        fs::File::create(&args.output_file).expect("error encountered while creating the file!");
-
-    let mut is_comment = false;
-    let mut is_space = false;
-
-    for line in fi.lines() {
-        let in_line_chars = line.chars().collect::<Vec<char>>();
-        let mut out_line_chars: Vec<char> = vec![];
-
-        if in_line_chars.len() == 0 {
-            continue;
+    let mut fi = match File::open(&args[1]) {
+        Ok(f) => f,
+        Err(_) => {
+            println!("can't read input");
+            process::exit(-2);
         }
+    };
+
+    let mut fo = match OpenOptions::new().write(true).create(true).open(&args[2]) {
+        Ok(f) => f,
+        Err(_) => {
+            println!("can't write output");
+            process::exit(-3);
+        }
+    };
+
+    let mut i_len = 0;
+    let mut o_len = 0;
+    let mut num_chars;
+    let mut no_spaces = false;
+    let mut no_comments = false;
+    let mut buffer = [0; 2048];
+    while let Ok(n) = fi.read(&mut buffer) {
+        if n == 0 {
+            break;
+        }
+        num_chars = n;
 
         let mut o = 0;
-
-        // remove comments
-        for i in 0..in_line_chars.len() - 1 {
-            // comment ends
-            if is_comment && in_line_chars[i] == '*' && in_line_chars[i + 1] == '/' {
-                is_comment = false;
+        for mut i in 0..num_chars {
+            // remove comments
+            if no_comments && buffer[i] == b'*' && buffer[i + 1] == b'/' {
+                no_comments = false;
+                i += 1;
                 continue;
             }
-            if is_comment {
+            if no_comments {
                 continue;
             }
-            // comment starts
-            if !is_comment && in_line_chars[i] == '/' && in_line_chars[i + 1] == '*' {
-                is_space = false;
-                is_comment = true;
+            if buffer[i] == b'/' && buffer[i + 1] == b'*' {
+                no_spaces = false;
+                no_comments = true;
+                i += 1;
                 continue;
             }
 
             // remove spaces
-            if in_line_chars[i] != ' ' && in_line_chars[i] != '\t' {
-                is_space = false;
+            if buffer[i] != b' ' && buffer[i] != b'\t' {
+                no_spaces = false;
             }
-            if in_line_chars[i] == '\r'
-                || in_line_chars[i] == '\n'
-                || (is_space && (in_line_chars[i] == ' ' || in_line_chars[i] == '\t'))
+            if buffer[i] == b'\r'
+                || buffer[i] == b'\n'
+                || (no_spaces && (buffer[i] == b' ' || buffer[i] == b'\t'))
             {
-                is_space = true;
+                no_spaces = true;
                 continue;
             }
-            if in_line_chars[i] == '{' {
-                loop {
-                    if (o > 1) && (in_line_chars[o - 1] == ' ' || in_line_chars[o - 1] == '\t') {
-                        break;
-                    }
+            if buffer[i] == b'{' {
+                while o > 1 && (buffer[o - 1] == b' ' || buffer[o - 1] == b'\t') {
                     o -= 1;
                 }
             }
-            if in_line_chars[i] == '>' {
-                loop {
-                    if (o > 1) && (in_line_chars[o - 1] == ' ' || in_line_chars[o - 1] == '\t') {
-                        break;
-                    }
+            if buffer[i] == b'>' {
+                while o > 1 && (buffer[o - 1] == b' ' || buffer[o - 1] == b'\t') {
                     o -= 1;
                 }
             }
-            if in_line_chars[i] == ':'
-                || in_line_chars[i] == ';'
-                || in_line_chars[i] == ','
-                || in_line_chars[i] == '>'
-            {
-                is_space = true;
+            if buffer[i] == b':' || buffer[i] == b';' || buffer[i] == b',' || buffer[i] == b'>' {
+                no_spaces = true;
             }
 
             // copy
-            out_line_chars.push(in_line_chars[i]);
+            buffer[o] = buffer[i];
             o += 1;
         }
-
-        // write
-        fo.write(String::from_iter(out_line_chars).as_bytes())?;
+        fo.write(&buffer[0..o]).unwrap();
+        i_len += num_chars;
+        o_len += o;
     }
 
-    Ok(())
+    println!("From {} chars to {} chars", i_len, o_len);
 }
