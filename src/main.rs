@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
         Ok(f) => f,
         Err(_) => {
             println!("can't open output file");
-            process::exit(-2);
+            process::exit(-3);
         }
     };
 
