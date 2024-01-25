@@ -9,25 +9,25 @@ This is a simple css minifer CLI tool written in Rust.
 Clone the project
 
 ```bash
-  git clone https://github.com/hpbyte/css_minifier.git
+git clone https://github.com/hpbyte/css_minifier.git
 
-  cd css_minifier
+cd css_minifier
 ```
 
 Install dependencies and this will make `css_minifier` to be available in the directory
 
 ```bash
-  cargo install --path .
+cargo install --path .
 ```
 
 Minifying the source file
 
 ```bash
-  css_minifier PATH_TO_INPUT_FILE OUTPUT_FILE_PATH
+css_minifier PATH_TO_INPUT_FILE OUTPUT_FILE_PATH
 ```
 
 Getting help
 
 ```bash
-  css_minifier --help
+css_minifier --help
 ```
