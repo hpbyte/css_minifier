@@ -21,7 +21,7 @@ Install dependencies and this will make `css_minifier` to be available in the di
 Minifying the source file
 
 ```bash
-  css_minifier -i PATH_TO_INPUT_FILE -o OUTPUT_FILE_PATH
+  css_minifier PATH_TO_INPUT_FILE OUTPUT_FILE_PATH
 ```
 
 Getting help
