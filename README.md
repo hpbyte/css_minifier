@@ -1,4 +1,3 @@
-
 ## Run Locally
 
 Clone the project
@@ -30,4 +29,3 @@ Getting help
 ```bash
   css_minifier --help
 ```
-
