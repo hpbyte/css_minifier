@@ -1,14 +1,16 @@
-## Run Locally
+# CSS Minifer
+
+This is a simple css minifer CLI tool written in Rust.
+
+![Screenshot](./assets/screenshot.png?raw=true "CSS_minifier")
+
+## Setup
 
 Clone the project
 
 ```bash
   git clone https://github.com/hpbyte/css_minifier.git
-```
 
-Go to the project directory
-
-```bash
   cd css_minifier
 ```
 
